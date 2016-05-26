@@ -1,5 +1,7 @@
 package com.bignerdranch.android.geoquiz;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,6 +10,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.view.ViewAnimationUtils;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -15,6 +18,9 @@ public class CheatActivity extends AppCompatActivity {
 
     private static final String EXTRA_ANSWER_IS_TRUE =
             "com.bignerdranch.android.geoquiz.answer_is_true";
+    private static final String ANSWER_SHOWN =
+            "com.bignerranch.android.geoquiz.answer_is_shown";
+
     private boolean mAnswerIsTrue;
     private TextView mAnswerTextView;
     private Button mShowAnswer;
@@ -23,6 +29,10 @@ public class CheatActivity extends AppCompatActivity {
         Intent i = new Intent(packageContext, CheatActivity.class);
         i.putExtra(EXTRA_ANSWER_IS_TRUE, answerIsTrue);
         return i;
+    }
+
+    public static boolean wasAnswerShown(Intent result){
+        return result.getBooleanExtra(ANSWER_SHOWN, false);
     }
 
     @Override
@@ -43,6 +53,25 @@ public class CheatActivity extends AppCompatActivity {
                 } else {
                     mAnswerTextView.setText(R.string.false_button);
                 }
+
+                int cx = mShowAnswer.getWidth() / 2;
+                int cy = mShowAnswer.getHeight() / 2;
+                float radius = mShowAnswer.getWidth();
+                Animator anim = ViewAnimationUtils
+                        .createCircularReveal(mShowAnswer, cx, cy, radius, 0);
+                anim.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        mAnswerTextView.setVisibility(View.VISIBLE);
+                        mShowAnswer.setVisibility(View.INVISIBLE);
+                    }
+                });
+                anim.start();
+
+                Intent reportCheating = new Intent();
+                reportCheating.putExtra(ANSWER_SHOWN, true);
+                setResult(RESULT_OK, reportCheating);
             }
         });
 
